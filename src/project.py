@@ -14,6 +14,9 @@ from statsmodels.tsa.arima_model import ARIMA
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
 from sklearn.metrics import mean_squared_error
+from fbprophet import Prophet
+from sklearn.neighbors import NearestNeighbors
+from scipy.spatial import distance
 
 # Suppress warnings that may appear (improve notebook readability)
 import warnings
@@ -24,6 +27,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=ConvergenceWarning)
 warnings.simplefilter(action='ignore', category=CW2)
 warnings.simplefilter(action='ignore', category=HessianInversionWarning)
+warnings.simplefilter(action='ignore', category=RuntimeWarning)
 
 # List of countries tested. The following data is used:
 #   - Country name
@@ -164,6 +168,24 @@ for index,country in enumerate(countries):
     plt.ylabel("Relative Transit Uses")
     plt.gcf().set_size_inches((16.0,8.0), forward=False)
     plt.savefig("{}/TimeSeries_ARIMA.png".format(foldername), bbox_inches='tight', dpi=100)
+    
+    # Perform fbProhpet forecasting
+    data = pd.DataFrame()
+    data["ds"] = daily_transits["Date"]
+    data["y"] = daily_transits["Transits"]
+    pht = Prophet()
+    pht.fit(data)
+    future_prices = pht.make_future_dataframe(periods=100)
+    forecast = pht.predict(future_prices)
+    forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()
+    fig = pht.plot(forecast)
+    ax1 = fig.add_subplot(111)
+    ax1.set_title("Daily TransitForecast", fontsize=16)
+    ax1.set_xlabel("Day", fontsize=12)
+    ax1.set_ylabel("Relative Transit Uses", fontsize=12)
+    fig2 = pht.plot_components(forecast)
+    fig.savefig("{}/TimeSeries_fbProphet.png".format(foldername), bbox_inches='tight', dpi=100)
+    fig2.savefig("{}/TimeSeries_fbProphet_components.png".format(foldername), bbox_inches='tight', dpi=100)
 
     ################################################################################
     # Anomaly Detection
@@ -179,3 +201,23 @@ for index,country in enumerate(countries):
     plt.ylabel("Relative Transit Uses")
     plt.gcf().set_size_inches((16.0,8.0), forward=False)
     plt.savefig("{}/AnomalyDetection_LocalOutlier.png".format(foldername), bbox_inches='tight', dpi=100)
+    
+    #perform K nearest Neighbor clustering
+    knn = 20
+    temp = daily_transits
+    temp = temp.drop(columns=["Date"])
+    nbrs = NearestNeighbors(n_neighbors=knn, metric=distance.minkowski).fit(temp.as_matrix())
+    distances, indices = nbrs.kneighbors(temp.as_matrix())
+    
+    anomaly_score = distances[:,knn-1]
+    
+    anom = pd.DataFrame(anomaly_score, index=df.index, columns=['Anomaly score'])
+    result = pd.concat((daily_transits,anom), axis=1)
+    fig = plt.figure(figsize=(10,6))
+    ax = fig.add_subplot(111)
+    x_range = range(len(daily_transits["Transits"]))
+    p = ax.scatter(x_range,result.Transits, c=result.nlargest(round(len(temp)*1),'Anomaly score')["Anomaly score"],cmap='jet')
+    ax.set_xlabel('Day')
+    ax.set_ylabel('Daily Transits')
+    fig.colorbar(p)
+    fig.savefig("{}/AnomalyDetection_KNearestNeighbor.png".format(foldername), bbox_inches='tight', dpi=100)
