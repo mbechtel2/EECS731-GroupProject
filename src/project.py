@@ -21,10 +21,12 @@ from scipy.spatial import distance
 # Suppress warnings that may appear (improve notebook readability)
 import warnings
 from sklearn.exceptions import ConvergenceWarning
+from matplotlib.cbook import MatplotlibDeprecationWarning
 from statsmodels.tools.sm_exceptions import ConvergenceWarning as CW2
 from statsmodels.tools.sm_exceptions import HessianInversionWarning
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=ConvergenceWarning)
+warnings.simplefilter(action='ignore', category=MatplotlibDeprecationWarning)
 warnings.simplefilter(action='ignore', category=CW2)
 warnings.simplefilter(action='ignore', category=HessianInversionWarning)
 warnings.simplefilter(action='ignore', category=RuntimeWarning)
@@ -206,8 +208,12 @@ for index,country in enumerate(countries):
     knn = 20
     temp = daily_transits
     temp = temp.drop(columns=["Date"])
-    nbrs = NearestNeighbors(n_neighbors=knn, metric=distance.minkowski).fit(temp.as_matrix())
-    distances, indices = nbrs.kneighbors(temp.as_matrix())
+    try:
+        nbrs = NearestNeighbors(n_neighbors=knn, metric=distance.minkowski).fit(temp.as_matrix())
+        distances, indices = nbrs.kneighbors(temp.as_matrix())
+    except AttributeError:
+        nbrs = NearestNeighbors(n_neighbors=knn, metric=distance.minkowski).fit(temp.to_numpy())
+        distances, indices = nbrs.kneighbors(temp.to_numpy())
     
     anomaly_score = distances[:,knn-1]
     
