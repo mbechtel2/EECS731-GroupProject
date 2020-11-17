@@ -1,5 +1,11 @@
 # EECS731-GroupProject
 
+In this project, we perform Regression, Time Series Forecasting and Anomaly Detection on daily COVID case and transit hub usage datasets for different countries around the world. In particular, we look at the number of new cases per day and the running total cases in each country and how they relate to the public transportation usage in each country. In the end, we make the following observations and findings:
+
+- We find that COVID cases do have a positive correlation to transit hub usage, but that they can't be used for predicting future public transportation trends.
+- We find that all countries are expected to continue their current trends for the near future.
+- We find that all countries do have outlying days, but that some countries produce results that would have more potential for helping to address and improve public transportation trends.
+
 ## Data Sources
 
 Daily Transit: [Google Community Mobility Reports](https://www.google.com/covid19/mobility/)
@@ -9,19 +15,9 @@ COVID Cases: [Our-World-in-Data (OWID)](https://ourworldindata.org/coronavirus-s
 ## Usage
 
 	cd src/
-	python project.py <name> <code> <numdays> <order>
+	python project.py 
 	
-The project.py file takes three to four command line parameters:
-
-- name: The name of the country as listed in the OWID dataset (e.g. "United States")
-- code: The two digit code associated with the country (e.g. US)
-- numdays: The number of days from when the first cases reported in the country to 2/15 (when the community mobility reports begin their data). For example, the US would be 1/21 to 2/14, which would be 25 days.
-- order: Optional parameter. In some cases, the default order values used for the ARIMA model don't work. As such, another order value can be passed. Otherwise, this can be left empty.
-
-Example uses:
-
-	python project "United States" US 25
-	python project "Germany" DE 18 6
+All numerical results are output to the console, while all figures and graphs are saved to the visualizations/ directory. Namely, each country will have their own subdirectory named after they 2-letter code.
 
 ## Acknowledgements
 
