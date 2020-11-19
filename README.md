@@ -1,5 +1,7 @@
 # EECS731-GroupProject
 
+Team name: Traveling with Confidence?
+
 Group members: Dana Almansour, Michael Bechtel, and Brandon Wheat
 
 In this project, we perform Regression, Time Series Forecasting and Anomaly Detection on daily COVID case and transit hub usage datasets for different countries around the world. In particular, we look at the number of new cases per day and the running total cases in each country and how they relate to the public transportation usage in each country. In the end, we make the following observations and findings:
